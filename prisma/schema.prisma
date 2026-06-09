@@ -1,0 +1,95 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Administrator {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  fname     String
+  lname     String
+  mob_no    String
+  hostel_id Int?     @unique
+  hostel    Hostel?  @relation(fields: [hostel_id], references: [hostel_id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Hostel {
+  hostel_id      Int            @id @default(autoincrement())
+  hostel_name    String         @unique
+  no_of_rooms    Int            @default(0)
+  no_of_students Int            @default(0)
+  administrator  Administrator?
+  rooms          Room[]
+  students       Student[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Room {
+  room_id        Int         @id @default(autoincrement())
+  room_number    String
+  capacity       Int
+  occupied_count Int         @default(0)
+  status         String      @default("AVAILABLE") // AVAILABLE, FULL, MAINTENANCE
+  hostel_id      Int
+  hostel         Hostel      @relation(fields: [hostel_id], references: [hostel_id], onDelete: Cascade)
+  students       Student[]
+  furniture      Furniture[]
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([hostel_id, room_number])
+}
+
+model Student {
+  student_id    Int       @id @default(autoincrement())
+  fname         String
+  lname         String
+  mob_no        String
+  dept          String
+  year_of_study Int
+  hostel_id     Int?
+  hostel        Hostel?   @relation(fields: [hostel_id], references: [hostel_id], onDelete: SetNull)
+  room_id       Int?
+  room          Room?     @relation(fields: [room_id], references: [room_id], onDelete: SetNull)
+  visitors      Visitor[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Furniture {
+  furniture_id   Int      @id @default(autoincrement())
+  furniture_type String
+  room_id        Int
+  room           Room     @relation(fields: [room_id], references: [room_id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Visitor {
+  visitor_id   Int       @id @default(autoincrement())
+  visitor_name String
+  date         DateTime
+  in_time      String
+  out_time     String?
+  student_id   Int
+  student      Student   @relation(fields: [student_id], references: [student_id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  action     String
+  details    String   @db.Text
+  admin_id   Int?
+  admin_name String?
+  createdAt  DateTime @default(now())
+}

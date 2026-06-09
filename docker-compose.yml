@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: hostel_db_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: P1r0a2v9@
+      MYSQL_DATABASE: hostel_management
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hostel_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=mysql://root:P1r0a2v9%40@db:3306/hostel_management
+      - JWT_SECRET=d5f8e32cbb54d587c63901b0f5923c588bf0a568ee29bc8628b030e4414c9902
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
